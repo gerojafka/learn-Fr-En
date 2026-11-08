@@ -322,6 +322,9 @@ table.hard tr.cur td{background:#fff8d6}
   .chipw{font-size:16px;padding:5px 13px}
 }
 
+.linkbtn{background:none;border:0;padding:0;color:var(--red);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.linkbtn:hover{color:#000}
+
 </style>
 </head>
 <body>
@@ -356,6 +359,7 @@ table.hard tr.cur td{background:#fff8d6}
   <div class="clock" id="pClock"><b id="pTime">0:00</b><small id="pAvg"></small></div>
   <div id="pCombo" class="combo"><b>×1</b><small></small></div>
   <div class="scorebox"><b id="pScore">0</b><small id="pPts"></small></div>
+  <button class="bandbtn" id="pResult" hidden></button>
   <button class="bandbtn" id="pHint">💡 <span id="pHints">3</span></button>
   <button class="bandbtn" id="pSound">🔊</button>
   <button class="bandbtn" id="pQuit">✕</button>
@@ -621,7 +625,15 @@ const EN = {
 "Classement synchronisé avec GitHub à {x}.":"Leaderboard synced with GitHub at {x}.",
 "Enregistrer et quitter":"Save and exit","Score enregistré":"Score saved","Ta progression est enregistrée sur cet ordinateur. Tu peux fermer la page.":"Your progress is saved on this computer. You can close the page.",
 "Enregistrement…":"Saving…","Envoi de ton score sur GitHub.":"Sending your score to GitHub.","À bientôt, {name} ! Ton score est sauvegardé sur GitHub. Tu peux fermer la page.":"See you soon, {name}! Your score is saved on GitHub. You can close the page.",
-"Envoi impossible":"Could not send","Ta progression est quand même enregistrée sur cet ordinateur.":"Your progress is still saved on this computer.","Réessayer":"Try again","Quitter quand même":"Leave anyway"
+"Envoi impossible":"Could not send","Ta progression est quand même enregistrée sur cet ordinateur.":"Your progress is still saved on this computer.","Réessayer":"Try again","Quitter quand même":"Leave anyway",
+"Liste {i} terminée":"List {i} done","Résultat":"Result","Voir le résultat de la liste précédente":"See the previous list’s result","Résultat de la liste {i}":"Result of list {i}",
+"Arrêter":"Stop","Arrêter la partie":"Stop playing","Arrêter la partie ?":"Stop playing?",
+"La liste en cours ne sera pas comptée. Les listes déjà terminées et les mots déjà reliés restent enregistrés.":"The current list will not count. Finished lists and words already linked stay saved.",
+"Arrêter et revenir à l’accueil":"Stop and go home",
+"Mon code secret":"My secret code","Ton profil est protégé par un code à 4 chiffres.":"Your profile is protected by a 4-digit code.","Ton profil n’a pas de code : tout le monde peut l’ouvrir.":"Your profile has no code: anyone can open it.",
+"Nouveau code (4 chiffres)":"New code (4 digits)","Choisir un code (4 chiffres)":"Choose a code (4 digits)","Laisse vide pour garder ton code actuel.":"Leave empty to keep your current code.",
+"Supprimer mon code":"Remove my code","Code supprimé":"Code removed","Le code doit faire exactement 4 chiffres.":"The code must be exactly 4 digits.",
+"Mon profil et mon code":"My profile and code","Mon profil : nom, couleur, code":"My profile: name, colour, code"
 };
 
 const EN_N = {};
@@ -951,7 +963,8 @@ function applyStatic(){
   $('#pPts').textContent = t('points');
   $('#pHint').title = t('Indice : montre la bonne traduction');
   $('#pSound').title = t('Effets sonores');
-  $('#pQuit').title = t('Quitter la liste'); $('#pQuit').setAttribute('aria-label', t('Quitter la liste'));
+  $('#pQuit').textContent = '⏹ '+t('Arrêter'); $('#pQuit').title = t('Arrêter la partie'); $('#pQuit').setAttribute('aria-label', t('Arrêter la partie'));
+  $('#pResult').textContent = '📊 '+t('Résultat'); $('#pResult').title = t('Voir le résultat de la liste précédente');
   $('#btnBack').textContent = t('Retour'); $('#btnBackRank').textContent = t('Retour');
   $('#rankTitle').textContent = t('Classement des joueurs');
   updateCloudBtn();
@@ -1234,6 +1247,7 @@ function curScore(){ return G ? G.sessionScore + (G.over ? 0 : G.listScore) : 0;
 
 function updateBand(){
   if(!G) return;
+  $('#pResult').hidden = !(G.lastR && !G.over);
   const L=LEVELS[G.level], N=G.left.length;
   $('#pList').textContent = G.mode==='revenge' ? t('Revanche') : t('Liste {i} / {n}', {i:G.index, n:G.total});
   $('#pProg').textContent = t('{m} sur {n} reliés', {m:G.matched.size, n:N});
@@ -1333,9 +1347,14 @@ $('#pQuit').addEventListener('click', ()=>{
   if(!G) return;
   if(G.over){ goHome(); return; }
   pause();
-  openModal(`<h2 class="m-title">${t('Descendre à la prochaine ?')}</h2>
-    <p class="m-sub">${t('Cette liste ne sera pas comptée, mais les mots déjà reliés restent enregistrés.')}</p>
-    <div class="m-actions"><button class="cta" data-action="resume" data-autofocus>${t('Continuer la liste')}</button><button class="ghost" data-action="home">${t('Quitter')}</button></div>`);
+  const multi=G.total>1;
+  openModal(`<h2 class="m-title">${t('Arrêter la partie ?')}</h2>
+    <p class="m-sub">${multi?t('La liste en cours ne sera pas comptée. Les listes déjà terminées et les mots déjà reliés restent enregistrés.'):t('Cette liste ne sera pas comptée, mais les mots déjà reliés restent enregistrés.')}</p>
+    <div class="m-actions"><button class="cta" data-action="resume" data-autofocus>${t('Continuer la liste')}</button><button class="ghost danger" data-action="home">${t('Arrêter et revenir à l’accueil')}</button></div>`);
+});
+$('#pResult').addEventListener('click', ()=>{
+  if(!G || !G.lastR || G.over) return;
+  pause(); showListModal(G.lastR, {view:true});
 });
 
 
@@ -1478,7 +1497,16 @@ function finishList(timeout){
 
   if(perfect){ sfx.win(); confetti(); } else if(timeout) sfx.fail(); else sfx.win();
   if(rankUp) setTimeout(()=>{ sfx.rank(); toast('🎉',t('Nouveau rang'), rankName(rankOf(S.score))); }, 800);
-  setTimeout(()=>showListModal({timeout, perfect, stars, timeBonus, perfectBonus, el, unmatched, newBadges, record, N}), unmatched.length ? 1300 : 650);
+  const res={timeout, perfect, stars, timeBonus, perfectBonus, el, unmatched, newBadges, record, N,
+    listScore:G.listScore, errors:G.errors, maxCombo:G.maxCombo, hinted:G.hinted.size, bestBefore:G.bestBefore, avgBefore:G.avgBefore, index:G.index};
+  G.lastR=res;
+  if(G.total>1 && G.index<G.total){
+    // trajet de plusieurs listes : on enchaîne sans fenêtre ; le bouton « Résultat » la montre à la demande
+    const idx=G.index, g=G;
+    setTimeout(()=>{ if(G!==g || !G.over || G.index!==idx || modal.hidden===false) return;
+      toast('🚉', t('Liste {i} terminée',{i:idx}), '+'+nf(res.listScore)+' '+t('points'));
+      afterList('next'); }, unmatched.length ? 1900 : 1000);
+  } else setTimeout(()=>showListModal(res), unmatched.length ? 1300 : 650);
 }
 function giveBadge(id, got){
   if(S.badges[id]) return;
@@ -1501,46 +1529,50 @@ function checkBadges(ctx){
   got.forEach((b,i)=>setTimeout(()=>toast(b.ic,t('Badge débloqué'),bName(b)), 300+i*600));
   return got;
 }
-function showListModal(r){
-  const last = G.index>=G.total, N=r.N, due=G.sentenceDue;
+function showListModal(r, o){
+  o=o||{}; const view=!!o.view;
+  const last = G.index>=G.total, N=r.N, due=!view && G.sentenceDue;
   const title = r.perfect ? t('Sans faute !') : r.timeout ? t('Terminus : temps écoulé') : t('Station atteinte');
   const sub = r.perfect ? t('Tous les mots du premier coup.')
     : r.timeout ? t(r.unmatched.length>1 ? '{n} non reliés. Les bonnes liaisons sont tracées en pointillés rouges sur le plan.' : '{n} non relié. Les bonnes liaisons sont tracées en pointillés rouges sur le plan.', {n:plural(r.unmatched.length,'mot')})
-    : (G.hinted.size ? t('{e} et {h} sur cette liste.', {e:plural(G.errors,'erreur'), h:plural(G.hinted.size,'indice')}) : t('{e} sur cette liste.', {e:plural(G.errors,'erreur')}));
+    : (r.hinted ? t('{e} et {h} sur cette liste.', {e:plural(r.errors,'erreur'), h:plural(r.hinted,'indice')}) : t('{e} sur cette liste.', {e:plural(r.errors,'erreur')}));
   const stars=[0,1,2].map(i=>`<span class="star${i<r.stars?' on':''}">★</span>`).join('');
   const bonus=[r.timeBonus?t('Bonus chrono +{n}',{n:r.timeBonus}):'', r.perfectBonus?t('Bonus sans faute +{n}',{n:r.perfectBonus}):''].filter(Boolean).join(', ');
   const avgNow = avgTime(N);
   let verdict='', vcls='';
   if(r.timeout){ verdict=t('Liste non terminée : ce temps ne compte pas dans ta moyenne.'); vcls='meh'; }
-  else if(G.bestBefore==null){ verdict=t('Premier temps enregistré pour une liste de {n} mots.',{n:N}); vcls='good'; }
-  else if(r.record){ verdict=t('Nouveau record pour une liste de {n} mots ! L’ancien était {x}.',{n:N, x:fmt(G.bestBefore)}); vcls='good'; }
-  else if(G.avgBefore!=null){
-    const d=Math.round(Math.abs(r.el-G.avgBefore));
-    if(r.el<=G.avgBefore){ verdict = d ? t('{n} s de mieux que ta moyenne.',{n:d}) : t('Pile dans ta moyenne.'); vcls='good'; }
+  else if(r.bestBefore==null){ verdict=t('Premier temps enregistré pour une liste de {n} mots.',{n:N}); vcls='good'; }
+  else if(r.record){ verdict=t('Nouveau record pour une liste de {n} mots ! L’ancien était {x}.',{n:N, x:fmt(r.bestBefore)}); vcls='good'; }
+  else if(r.avgBefore!=null){
+    const d=Math.round(Math.abs(r.el-r.avgBefore));
+    if(r.el<=r.avgBefore){ verdict = d ? t('{n} s de mieux que ta moyenne.',{n:d}) : t('Pile dans ta moyenne.'); vcls='good'; }
     else { verdict=t('{n} s de plus que ta moyenne.',{n:d}); vcls='meh'; }
   }
   const review=[...G.wrongWords].map(en=>EN_INDEX.get(en));
-  const next = due
+  const next = view
+    ? `<button class="cta" data-action="resume" data-autofocus>${t('Continuer la liste')}</button>`
+    : due
     ? `<button class="cta" data-action="${last?'summary':'next'}" data-autofocus>${t('Traduire la phrase')}</button>`
     : last
     ? `<button class="cta" data-action="summary" data-autofocus>${G.total>1?t('Voir le bilan du trajet'):t('Terminer')}</button>`
     : `<button class="cta" data-action="next" data-autofocus>${t('Liste suivante ({i} / {n})',{i:G.index+1, n:G.total})}</button>`;
   openModal(`
     <h2 class="m-title">${title}</h2>
+    ${view?`<p class="note" style="margin-top:-8px">${t('Résultat de la liste {i}',{i:r.index})}</p>`:''}
     <div class="stars" aria-label="${t('{n} étoile(s) sur 3',{n:r.stars})}">${stars}</div>
     <p class="m-sub">${sub}</p>
     <dl class="m-grid">
       <div><dt>${t('Temps')}</dt><dd>${fmt(r.el)}<small>${avgNow!=null?t('moyenne {x}',{x:fmt(avgNow)}):t('pas encore de moyenne')}</small></dd></div>
-      <div><dt>${t('Points')}</dt><dd>+${nf(G.listScore)}</dd></div>
-      <div><dt>${t('Meilleure série')}</dt><dd>${G.maxCombo}</dd></div>
-      <div><dt>${t('Erreurs')}</dt><dd>${G.errors}</dd></div>
+      <div><dt>${t('Points')}</dt><dd>+${nf(r.listScore)}</dd></div>
+      <div><dt>${t('Meilleure série')}</dt><dd>${r.maxCombo}</dd></div>
+      <div><dt>${t('Erreurs')}</dt><dd>${r.errors}</dd></div>
     </dl>
     ${verdict?`<p class="verdict ${vcls}">${verdict}</p>`:''}
     ${bonus?`<p class="bonus">${bonus}</p>`:''}
     ${due?`<p class="verdict good">🎫 ${t('Tu as relié {n} mots : une phrase à traduire t’attend avant la suite.',{n:SENT_EVERY*Math.floor(S.answered/SENT_EVERY)})}</p>`:''}
     ${r.newBadges.length?`<h3>${r.newBadges.length>1?t('Badges débloqués'):t('Badge débloqué')}</h3><div class="newbadges">${r.newBadges.map(b=>`<span class="chip">${b.ic} ${esc(bName(b))}</span>`).join('')}</div>`:''}
     ${review.length?`<h3>${t('À revoir (ces mots reviendront plus souvent)')}</h3><ul class="review">${review.map(w=>`<li><button class="say" data-action="say" data-word="${esc(textOf(w,tar()))}">🔊 ${esc(textOf(w,tar()))}</button><span>${esc(textOf(w,LANG))}</span></li>`).join('')}</ul>`:''}
-    <div class="m-actions">${next}<button class="ghost" data-action="peek">${t('Voir le plan')}</button><button class="ghost" data-action="home">${t('Accueil')}</button></div>`);
+    <div class="m-actions">${next}${view?'':`<button class="ghost" data-action="peek">${t('Voir le plan')}</button><button class="ghost" data-action="home">${t('Accueil')}</button>`}</div>`);
 }
 function showSummary(){
   const tot=G.sessionOk+G.sessionBad+G.sessionMissed;
@@ -1600,6 +1632,7 @@ sheet.addEventListener('click', e=>{
     if(both && ghReady()) ghDeletePlayer(id).then(()=>toast('☁',t('GitHub'),t('Profil supprimé sur GitHub'))).catch(err=>toast('⚠',t('GitHub'),errText(err)));
     return;
   }
+  if(a==='pinRemove'){ P.pin=''; P.pu=Date.now(); save(); scheduleSync(800); toast('🔓',t('Code supprimé'),P.name); openProfile(); return; }
   if(a==='quitPlayers'){ closeModal(); show('players'); return; }
   if(a==='quitRetry'){ saveAndQuit(); return; }
   if(a==='ghSave'){ ghSaveForm(false); return; }
@@ -1643,7 +1676,7 @@ function openSettings(){
     <button class="ghost" data-action="testVoice">${t('Écouter un exemple')}</button>
     <p class="note">${tar()==='en' ? t('Les voix dépendent du navigateur. Sur Windows, Microsoft Edge propose des voix américaines très naturelles (Aria, Jenny, Guy).') : t('Les voix dépendent du navigateur. Sur Windows, Microsoft Edge propose des voix françaises très naturelles (Denise, Henri).')}</p>`
     :`<p class="note">${t('Ton navigateur ne propose pas de synthèse vocale : la prononciation n’est pas disponible.')}</p>`}
-    <div class="m-actions"><button class="cta" data-action="close" data-autofocus>${t('Fermer')}</button><button class="ghost" id="setGh">☁ ${t('Sauvegarde GitHub')}</button></div>`);
+    <div class="m-actions"><button class="cta" data-action="close" data-autofocus>${t('Fermer')}</button><button class="ghost" id="setProf">👤 ${t('Mon profil et mon code')}</button><button class="ghost" id="setGh">☁ ${t('Sauvegarde GitHub')}</button></div>`);
   $('#setSize').addEventListener('click', e=>{
     const b=e.target.closest('[data-size]'); if(!b) return;
     S.settings.size=+b.dataset.size; save(); sfx.select();
@@ -1657,6 +1690,7 @@ function openSettings(){
   $('#setSound').onchange=e=>{ S.settings.sound=e.target.checked; save(); sfx.select(); };
   $('#setVoice').onchange=e=>{ S.settings.voice=e.target.checked; save(); };
   $('#setGh').onclick=()=>openGithub();
+  $('#setProf').onclick=()=>openProfile();
   if(TTS){
     fillVoiceSelect();
     $('#setVoiceName').onchange=e=>{ S.settings.voiceName=e.target.value; save(); speak(tar()==='en'?'Hello!':'Bonjour !', true); };
@@ -1674,11 +1708,16 @@ function fillVoiceSelect(){
 let profColor=null;
 function openProfile(){
   profColor=P.color;
+  const has=!!P.pin;
   openModal(`
     <h2 class="m-title">${t('Mon profil')}</h2>
     <label class="field">${t('Prénom ou pseudo')}<input id="prName" maxlength="20" value="${esc(P.name)}" autocomplete="off"></label>
     <fieldset class="field"><legend>${t('Ta couleur')}</legend><div class="swatches" id="prColors">${PLAYER_COLORS.map(c=>`<button type="button" class="sw" data-c="${c}" aria-pressed="${c===P.color}" style="background:${c}" aria-label="${t('Couleur')}"></button>`).join('')}</div></fieldset>
-    <label class="field">${t('Code à 4 chiffres (laisser vide pour aucun code)')}<input id="prPin" inputmode="numeric" maxlength="4" value="${esc(P.pin||'')}" autocomplete="off"></label>
+    <fieldset class="field"><legend>${t('Mon code secret')}</legend>
+      <p class="note" style="margin:0 0 6px">${has?'🔒 '+t('Ton profil est protégé par un code à 4 chiffres.'):t('Ton profil n’a pas de code : tout le monde peut l’ouvrir.')}</p>
+      <input id="prPin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="${has?t('Nouveau code (4 chiffres)'):t('Choisir un code (4 chiffres)')}" aria-label="${has?t('Nouveau code (4 chiffres)'):t('Choisir un code (4 chiffres)')}">
+      ${has?`<p class="note" style="margin:6px 0 0">${t('Laisse vide pour garder ton code actuel.')} <button type="button" class="linkbtn" data-action="pinRemove">${t('Supprimer mon code')}</button></p>`:''}
+    </fieldset>
     <p class="err" id="prErr" role="alert"></p>
     <div class="m-actions"><button class="cta" data-action="profileOk" data-autofocus>${t('Enregistrer')}</button><button class="ghost" data-action="close">${t('Annuler')}</button></div>`);
   $('#prColors').addEventListener('click', e=>{ const b=e.target.closest('[data-c]'); if(!b) return; profColor=b.dataset.c; sheet.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
@@ -1687,8 +1726,8 @@ function saveProfile(){
   const name=$('#prName').value.trim().replace(/\s+/g,' '), pin=$('#prPin').value.trim(), err=$('#prErr');
   if(!name){ err.textContent=t('Le nom ne peut pas être vide.'); return; }
   if(Object.values(DB.players).some(p=>p.id!==P.id && p.name.toLowerCase()===name.toLowerCase())){ err.textContent=t('Ce nom est déjà pris par un autre joueur.'); return; }
-  if(pin && !/^\d{4}$/.test(pin)){ err.textContent=t('Le code doit faire exactement 4 chiffres, ou rester vide.'); return; }
-  P.name=name; P.pin=pin; P.color=profColor; P.pu=Date.now(); save(); closeModal(); renderStats(); toast('✏️',t('Profil enregistré'), name); scheduleSync(800);
+  if(pin && !/^\d{4}$/.test(pin)){ err.textContent=t('Le code doit faire exactement 4 chiffres.'); return; }
+  P.name=name; if(pin) P.pin=pin; P.color=profColor; P.pu=Date.now(); save(); closeModal(); renderStats(); toast('✏️',t('Profil enregistré'), name); scheduleSync(800);
 }
 
 
@@ -1752,7 +1791,7 @@ function renderStats(){
 
     <h3 class="section-title">${t('Ton profil')}</h3>
     <div class="btnrow">
-      <button class="ghost" id="btnProfile">${t('Modifier mon nom, ma couleur ou mon code')}</button>
+      <button class="ghost" id="btnProfile">${t('Mon profil : nom, couleur, code')}</button>
       <button class="ghost danger" id="btnReset">${t('Effacer ma progression')}</button>
       <button class="ghost danger" id="btnDelete">${t('Supprimer mon profil')}</button>
     </div>`;
