@@ -344,6 +344,7 @@ table.hard tr.cur td{background:#fff8d6}
   <button class="bandbtn" id="btnStats"></button>
   <button class="bandbtn cloud" id="btnCloud">☁</button>
   <button class="bandbtn" id="btnSettings">⚙</button>
+  <button class="bandbtn" id="btnQuit"></button>
 </header>
 
 <!-- Bandeau : partie -->
@@ -617,7 +618,10 @@ const EN = {
 "points sur 7 jours":"points over 7 days","points sur 30 jours":"points over 30 days","points sur 12 mois":"points over 12 months",
 "Aucun joueur pour l’instant.":"No players yet.",
 "Ce classement ne contient que les joueurs de cet ordinateur. Connecte GitHub pour y ajouter ceux des autres ordinateurs.":"This leaderboard only has the players on this computer. Connect GitHub to add those from other computers.",
-"Classement synchronisé avec GitHub à {x}.":"Leaderboard synced with GitHub at {x}."
+"Classement synchronisé avec GitHub à {x}.":"Leaderboard synced with GitHub at {x}.",
+"Enregistrer et quitter":"Save and exit","Score enregistré":"Score saved","Ta progression est enregistrée sur cet ordinateur. Tu peux fermer la page.":"Your progress is saved on this computer. You can close the page.",
+"Enregistrement…":"Saving…","Envoi de ton score sur GitHub.":"Sending your score to GitHub.","À bientôt, {name} ! Ton score est sauvegardé sur GitHub. Tu peux fermer la page.":"See you soon, {name}! Your score is saved on GitHub. You can close the page.",
+"Envoi impossible":"Could not send","Ta progression est quand même enregistrée sur cet ordinateur.":"Your progress is still saved on this computer.","Réessayer":"Try again","Quitter quand même":"Leave anyway"
 };
 
 const EN_N = {};
@@ -939,6 +943,7 @@ function applyStatic(){
   $('#btnRank').textContent = '🏆 '+t('Classement');
   $('#btnPlayer').title = t('Changer de joueur');
   $('#btnStats').textContent = t('Statistiques');
+  $('#btnQuit').textContent = '⏻ '+t('Enregistrer et quitter');
   $('#btnSettings').title = t('Réglages'); $('#btnSettings').setAttribute('aria-label', t('Réglages'));
   $('#pLeftL').textContent = t('reste');
   $('#pClock').title = t('Temps mis sur cette liste');
@@ -1154,6 +1159,7 @@ $('#btnRankP').addEventListener('click', ()=>{ rankFrom='players'; show('rank');
 $('#btnBackRank').addEventListener('click', ()=>show(rankFrom==='home' && P ? 'home' : 'players'));
 $('#btnSettings').addEventListener('click', openSettings);
 $('#btnCloud').addEventListener('click', openGithub);
+$('#btnQuit').addEventListener('click', saveAndQuit);
 $('#btnCloudP').addEventListener('click', openGithub);
 
 /* =========================================================
@@ -1552,7 +1558,7 @@ function showSummary(){
     ${next!=null?`<p class="m-sub">${t('Encore {n} points pour devenir « {rank} ».',{n:nf(next-S.score), rank:rankName(r+1)})}</p>`:''}
     <div class="m-actions"><button class="cta" data-action="replay" data-autofocus>${t('Repartir')}</button><button class="ghost" data-action="home">${t('Accueil')}</button></div>`);
 }
-function goHome(){ closeModal(); stopTimer(); G=null; if(TTS) speechSynthesis.cancel(); show('home'); }
+function goHome(){ closeModal(); stopTimer(); G=null; if(TTS) speechSynthesis.cancel(); show('home'); scheduleSync(300); }
 // après une liste : une éventuelle phrase à traduire, puis la suite
 function afterList(kind){
   const go = ()=>{ if(kind==='next') nextList(); else if(G && G.total>1) showSummary(); else goHome(); };
@@ -1594,6 +1600,8 @@ sheet.addEventListener('click', e=>{
     if(both && ghReady()) ghDeletePlayer(id).then(()=>toast('☁',t('GitHub'),t('Profil supprimé sur GitHub'))).catch(err=>toast('⚠',t('GitHub'),errText(err)));
     return;
   }
+  if(a==='quitPlayers'){ closeModal(); show('players'); return; }
+  if(a==='quitRetry'){ saveAndQuit(); return; }
   if(a==='ghSave'){ ghSaveForm(false); return; }
   if(a==='ghTest'){ ghSaveForm(true); return; }
   if(a==='ghSync'){ ghSyncFromModal(); return; }
@@ -2335,6 +2343,33 @@ const ids=Object.keys(DB.players);
 if(ids.length===1 && !DB.players[ids[0]].pin){ setPlayer(ids[0]); show('home'); if(ghReady()) syncNow({silent:true}); }
 else show('players');
 window.__game = {get S(){return S;}, get G(){return G;}, get X(){return X;}, get DB(){return DB;}, get GH(){return GH;}, get LANG(){return LANG;}, WORDS, SENTS, t, setLang, mergeInto};
+
+
+/* ---------- Enregistrer et quitter ---------- */
+async function saveAndQuit(){
+  const name=P?P.name:'';
+  saveDB();
+  if(!ghReady()){
+    openModal(`<h2 class="m-title">${t('Score enregistré')}</h2>
+      <p class="m-sub">${t('Ta progression est enregistrée sur cet ordinateur. Tu peux fermer la page.')}</p>
+      <div class="m-actions"><button class="cta" data-action="quitPlayers" data-autofocus>${t('Changer de joueur')}</button></div>`);
+    return;
+  }
+  openModal(`<h2 class="m-title">${t('Enregistrement…')}</h2><p class="m-sub sspin">${t('Envoi de ton score sur GitHub.')}</p>`);
+  clearTimeout(GH.timer);
+  await syncNow({silent:true});
+  if(GH.state==='ok'){
+    openModal(`<h2 class="m-title">✔ ${t('Score enregistré')}</h2>
+      <p class="m-sub">${t('À bientôt, {name} ! Ton score est sauvegardé sur GitHub. Tu peux fermer la page.',{name:esc(name)})}</p>
+      <div class="m-actions"><button class="cta" data-action="quitPlayers" data-autofocus>${t('Changer de joueur')}</button><button class="ghost" data-action="close">${t('Fermer')}</button></div>`);
+  }else{
+    openModal(`<h2 class="m-title">⚠ ${t('Envoi impossible')}</h2>
+      <p class="m-sub">${esc(GH.msg||'')}</p><p class="note">${t('Ta progression est quand même enregistrée sur cet ordinateur.')}</p>
+      <div class="m-actions"><button class="cta" data-action="quitRetry" data-autofocus>${t('Réessayer')}</button><button class="ghost" data-action="quitPlayers">${t('Quitter quand même')}</button></div>`);
+  }
+}
+/* envoi de dernière minute quand on quitte ou masque la page */
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden' && ghReady() && P && DB.gh.auto!==false && GH.timer){ clearTimeout(GH.timer); GH.timer=null; syncNow({silent:true}); } });
 
 })();
 </script>
