@@ -325,6 +325,8 @@ table.hard tr.cur td{background:#fff8d6}
 .linkbtn{background:none;border:0;padding:0;color:var(--red);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 .linkbtn:hover{color:#000}
 
+#ver{position:fixed;left:8px;bottom:6px;z-index:5;font:700 11px/1 system-ui,sans-serif;color:#555;background:#ffffffd9;border:1px solid #0002;border-radius:6px;padding:3px 6px;pointer-events:none}
+
 </style>
 </head>
 <body>
@@ -376,6 +378,8 @@ table.hard tr.cur td{background:#fff8d6}
   <button class="bandbtn" id="btnBackRank"></button>
   <h1 id="rankTitle"></h1>
 </header>
+
+<div id="ver" role="note"></div>
 
 <main>
   <!-- JOUEURS -->
@@ -457,6 +461,7 @@ table.hard tr.cur td{background:#fff8d6}
 (function(){
 'use strict';
 
+const VERSION='3.5', VERSION_DATE='8 nov. 2026, 15:40';
 /* =========================================================
    Données : les 1500 mots anglais les plus courants (ordre de fréquence)
    et des phrases courtes anglais / français
@@ -633,7 +638,8 @@ const EN = {
 "Mon code secret":"My secret code","Ton profil est protégé par un code à 4 chiffres.":"Your profile is protected by a 4-digit code.","Ton profil n’a pas de code : tout le monde peut l’ouvrir.":"Your profile has no code: anyone can open it.",
 "Nouveau code (4 chiffres)":"New code (4 digits)","Choisir un code (4 chiffres)":"Choose a code (4 digits)","Laisse vide pour garder ton code actuel.":"Leave empty to keep your current code.",
 "Supprimer mon code":"Remove my code","Code supprimé":"Code removed","Le code doit faire exactement 4 chiffres.":"The code must be exactly 4 digits.",
-"Mon profil et mon code":"My profile and code","Mon profil : nom, couleur, code":"My profile: name, colour, code"
+"Mon profil et mon code":"My profile and code","Mon profil : nom, couleur, code":"My profile: name, colour, code",
+"Version {v}, mise à jour le {d}":"Version {v}, updated {d}"
 };
 
 const EN_N = {};
@@ -954,6 +960,7 @@ function applyStatic(){
   $('#btnRankP').textContent = '🏆 '+t('Classement');
   $('#btnRank').textContent = '🏆 '+t('Classement');
   $('#btnPlayer').title = t('Changer de joueur');
+  $('#ver').textContent = 'v'+VERSION; $('#ver').title = t('Version {v}, mise à jour le {d}',{v:VERSION, d:VERSION_DATE});
   $('#btnStats').textContent = t('Statistiques');
   $('#btnQuit').textContent = '⏻ '+t('Enregistrer et quitter');
   $('#btnSettings').title = t('Réglages'); $('#btnSettings').setAttribute('aria-label', t('Réglages'));
