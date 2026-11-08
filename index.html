@@ -2041,6 +2041,8 @@ document.addEventListener('keydown', e=>{
            {dossier}/classement.json    = résumé de chaque joueur, pour le classement
    ========================================================= */
 const GH = {rank:null, state:'off', at:0, msg:'', busy:false, again:false, p:null, timer:null, warned:false};
+/* Réglages proposés d’office (rien de secret : le jeton n’est jamais inclus) */
+const GH_DEFAULT={owner:'gerojafka', repo:'scores-anglais'};
 function ghReady(){ const c=DB.gh; return !!(c && c.token && c.owner && c.repo); }
 function ghDir(){ return ((DB.gh && DB.gh.dir) || 'donnees-anglais').replace(/^\/+|\/+$/g,''); }
 function errText(e){ return (e && e.message) || String(e); }
@@ -2223,7 +2225,7 @@ function finishImport(o){
 
 /* ---------- fenêtre de connexion ---------- */
 function openGithub(){
-  const c=DB.gh||{owner:'', repo:'', branch:'', dir:'donnees-anglais', token:'', auto:true};
+  const c=DB.gh||{owner:GH_DEFAULT.owner, repo:GH_DEFAULT.repo, branch:'', dir:'donnees-anglais', token:'', auto:true};
   openModal(`
     <h2 class="m-title">☁ ${t('Sauvegarde GitHub')}</h2>
     <p class="m-sub">${t('Ton profil, ton score et le classement sont enregistrés dans un dépôt GitHub. Tu les retrouves sur un autre ordinateur et les joueurs se classent entre eux.')}</p>
