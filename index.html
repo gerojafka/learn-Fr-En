@@ -725,7 +725,7 @@ function avPicker(id,cur){ cur=avId(cur); return `<div class="avgrid" id="${id}"
 function avBind(id,get,set){ const g=document.getElementById(id); g.addEventListener('click',e=>{ const b=e.target.closest('[data-av]'); if(!b) return; const v=get()===b.dataset.av?'':b.dataset.av; set(v); g.querySelectorAll('.avb').forEach(x=>x.setAttribute('aria-pressed',x.dataset.av===v)); }); }
 
 const RESET_EPOCH=1000;
-const VERSION='5.3', VERSION_DATE='15 nov. 2026';
+const VERSION='5.4', VERSION_DATE='15 nov. 2026';
 /* =========================================================
    Données : 6000 mots classés en 6 niveaux du CECRL (A1 à C2), 1000 par niveau
    et des phrases courtes anglais / français
@@ -1111,7 +1111,7 @@ function loadDB(){
     const raw=localStorage.getItem(KEY);
     if(raw){ const db=JSON.parse(raw); if(db && db.players){ for(const id in db.players) fixPlayer(db.players[id]); db.lang = db.lang==='en'?'en':'fr'; db.gh = db.gh||null; return db; } }
   }catch(e){}
-  const db={current:null, players:{}, lang:(navigator.language||'fr').toLowerCase().startsWith('en')?'en':'fr', gh:null};
+  const db={current:null, players:{}, lang:'en', gh:null};
   try{
     const old=localStorage.getItem(OLDKEY);
     if(old){ const id=newId(); db.players[id]=fixPlayer({id, name:'Joueur 1', color:PLAYER_COLORS[0], pin:'', created:Date.now(), data:JSON.parse(old)}); db.current=id; db.lang='fr'; }
