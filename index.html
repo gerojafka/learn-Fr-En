@@ -526,6 +526,10 @@ body:has(#home:not([hidden])),body:has(#players:not([hidden])){
 .stop .fav.pop{animation:favpop .35s}
 @keyframes favpop{50%{transform:translateY(-50%) scale(1.5) rotate(15deg)}}
 .stop.L{padding-left:42px}
+/* la colonne de l'avatar s'adapte à sa taille : le texte ne le chevauche plus */
+.prow,.rkrow{grid-template-columns:34px auto minmax(0,1fr) auto}
+.prow .pos{text-align:center}
+@media(max-width:700px){.prow,.rkrow{grid-template-columns:28px auto minmax(0,1fr) auto;gap:10px}}
 
 </style>
 </head>
@@ -709,7 +713,7 @@ function avPicker(id,cur){ cur=avId(cur); return `<div class="avgrid" id="${id}"
 function avBind(id,get,set){ const g=document.getElementById(id); g.addEventListener('click',e=>{ const b=e.target.closest('[data-av]'); if(!b) return; const v=get()===b.dataset.av?'':b.dataset.av; set(v); g.querySelectorAll('.avb').forEach(x=>x.setAttribute('aria-pressed',x.dataset.av===v)); }); }
 
 const RESET_EPOCH=1000;
-const VERSION='5.0', VERSION_DATE='15 nov. 2026';
+const VERSION='5.1', VERSION_DATE='15 nov. 2026';
 /* =========================================================
    Données : 6000 mots classés en 6 niveaux du CECRL (A1 à C2), 1000 par niveau
    et des phrases courtes anglais / français
