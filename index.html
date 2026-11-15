@@ -462,6 +462,63 @@ span.avatar.av-xl{width:84px;height:84px;border-width:4px}
 .sheetav{position:absolute;top:6px;right:14px;z-index:2}
 .sheetav span.avatar{box-shadow:0 2px 6px #0004}
 .pgrid .avgrid,.sheet .avgrid{margin-top:4px}
+/* ================= accueil plus joyeux (v4.6) ================= */
+body:has(#home:not([hidden])),body:has(#players:not([hidden])){
+  background:
+   radial-gradient(circle at 7% 10%,#ffd23f66 0 64px,transparent 65px),
+   radial-gradient(circle at 94% 26%,#00a1de40 0 96px,transparent 97px),
+   radial-gradient(circle at 4% 62%,#b933ad2e 0 84px,transparent 85px),
+   radial-gradient(circle at 96% 80%,#00933c2e 0 110px,transparent 111px),
+   radial-gradient(circle at 50% 100%,#ff631926 0 140px,transparent 141px),
+   linear-gradient(180deg,#e6f4ff 0%,#fff8e4 55%,#ffe9f1 100%);
+  background-attachment:fixed}
+#bandHome,#bandPlayers{background:linear-gradient(90deg,#0a2a7c 0%,#0039A6 40%,#6b2fd6 100%)}
+#bandHome::after,#bandPlayers::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;
+  background:linear-gradient(90deg,#EE352E 0 16.66%,#FF6319 0 33.33%,#FCCC0A 0 50%,#00933C 0 66.66%,#00A1DE 0 83.33%,#B933AD 0)}
+#bandHome,#bandPlayers{padding-bottom:16px}
+.hero h2,.ptitle{background:linear-gradient(90deg,#0039A6,#B933AD 55%,#EE352E);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.08em}
+.hero>:last-child{background:#fff;border:4px solid #0039A6;border-radius:28px;padding:18px 20px;box-shadow:0 8px 0 #FCCC0A}
+.rankline .rk{color:#0a2a7c}
+.meter{border-color:#0039A6;height:16px}
+.meter>span{background:linear-gradient(90deg,#00933C,#FCCC0A,#FF6319,#EE352E,#B933AD)}
+.strip{border-color:#0039A6}
+.section-title{display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';flex:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px #fff,0 0 0 7px var(--blue)}
+#secMap::before{background:#00933C;box-shadow:0 0 0 4px #fff,0 0 0 7px #00933C}
+#secLine::before{background:#FF6319;box-shadow:0 0 0 4px #fff,0 0 0 7px #FF6319}
+#secTrip::before{background:#B933AD;box-shadow:0 0 0 4px #fff,0 0 0 7px #B933AD}
+.d-card{box-shadow:0 5px 0 #0002}
+.d-goal{background:#fff6cc;border-color:#f0b400}
+.d-streak{background:#ffe7d6;border-color:#FF6319}
+.d-quests{background:#e0f6e8;border-color:#00933C}
+.d-league{background:#f0e4ff;border-color:#B933AD}
+.d-card .ring{filter:drop-shadow(0 2px 0 #0002)}
+.lv{background:#fff;background:color-mix(in srgb,var(--lc,#0039A6) 10%,#fff);border-color:var(--lc,#0039A6);box-shadow:0 5px 0 var(--lc,#0039A6);transition:transform .12s,box-shadow .12s}
+.lv:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--lc,#0039A6)}
+.lv[aria-checked="true"]{background:var(--lc,#0039A6);color:#fff;transform:translateY(3px);box-shadow:0 2px 0 #0004}
+.lv[aria-checked="true"] small{color:#ffffffe6}
+.lv[aria-checked="true"] .bullet{box-shadow:0 0 0 3px #fff}
+.lv[aria-checked="true"] .lvm{background:#ffffff55}
+.lv[aria-checked="true"] .lvm .a{background:#ffffffb0}.lv[aria-checked="true"] .lvm .b{background:#fff}
+.lv[aria-checked="true"] .lvt b{color:#fff}
+.seg{border-color:#0039A6}
+.seg button+button{border-left-color:#0039A6}
+.seg button[aria-checked="true"],.d-goal .goals button[aria-checked="true"]{background:#0039A6;color:#fff}
+.d-goal .goals{border-color:#f0b400}
+.check{border-color:#00A1DE;background:#effaff}
+.check input{accent-color:#0039A6}
+.cta{background:linear-gradient(180deg,#ff8a2a,#ee352e);box-shadow:0 6px 0 #9c1d18;transition:transform .1s,box-shadow .1s}
+.cta:hover{background:linear-gradient(180deg,#ff9a40,#f4453d);transform:translateY(-2px);box-shadow:0 8px 0 #9c1d18}
+.cta:active{transform:translateY(5px);box-shadow:0 1px 0 #9c1d18}
+.cta .bullet{box-shadow:0 0 0 3px #fff}
+.m-actions .cta{box-shadow:0 5px 0 #9c1d18}
+.ghost{border-color:#0039A6;color:#0039A6}
+.ghost:hover:not(:disabled){background:#e8f0ff}
+.ghost.danger{border-color:var(--red);color:var(--red)}
+.note{color:#4d5560}
+@media(prefers-reduced-motion:reduce){.lv,.cta{transition:none}}
+.section-title{padding-left:9px}
+
 </style>
 </head>
 <body>
@@ -644,7 +701,7 @@ function avPicker(id,cur){ cur=avId(cur); return `<div class="avgrid" id="${id}"
 function avBind(id,get,set){ const g=document.getElementById(id); g.addEventListener('click',e=>{ const b=e.target.closest('[data-av]'); if(!b) return; const v=get()===b.dataset.av?'':b.dataset.av; set(v); g.querySelectorAll('.avb').forEach(x=>x.setAttribute('aria-pressed',x.dataset.av===v)); }); }
 
 const RESET_EPOCH=1000;
-const VERSION='4.5', VERSION_DATE='15 nov. 2026';
+const VERSION='4.6', VERSION_DATE='15 nov. 2026';
 /* =========================================================
    Données : 6000 mots classés en 6 niveaux du CECRL (A1 à C2), 1000 par niveau
    et des phrases courtes anglais / français
@@ -1419,7 +1476,7 @@ function renderHome(){
   $('#secLine').textContent = t('Choisis ta ligne');
   $('#levels').setAttribute('aria-label', t('Niveau de difficulté'));
   $('#levels').innerHTML = LEVELS.map((lv,i)=>
-    `<button class="lv" role="radio" aria-checked="${i===S.settings.level}" data-lv="${i}">${bulletHTML(lv)}<span><b>${lv.name} : ${lv.label}</b><small>${lv.desc}</small>${lvProgress(i)}</span></button>`).join('');
+    `<button class="lv" role="radio" aria-checked="${i===S.settings.level}" data-lv="${i}" style="--lc:${lv.color}">${bulletHTML(lv)}<span><b>${lv.name} : ${lv.label}</b><small>${lv.desc}</small>${lvProgress(i)}</span></button>`).join('');
   $('#secTrip').textContent = t('Ton trajet');
   $('#dirLabel').textContent = t('Sens');
   $('#dirSeg').setAttribute('aria-label', t('Sens du jeu'));
