@@ -539,6 +539,10 @@ body:has(#home:not([hidden])),body:has(#players:not([hidden])){
 .prow .pos{text-align:center}
 @media(max-width:700px){.prow,.rkrow{grid-template-columns:28px auto minmax(0,1fr) auto;gap:10px}}
 
+.ghhint{background:#e8f4ff;border:3px solid #00A1DE;border-radius:18px;padding:14px 16px;margin:6px 0 18px;box-shadow:0 5px 0 #00A1DE55}
+.ghhint p{margin:6px 0 12px;color:#35404d;font-size:15px;line-height:1.4}
+.ghhint .cta.small{padding:10px 16px;font-size:16px}
+
 </style>
 </head>
 <body>
@@ -721,7 +725,7 @@ function avPicker(id,cur){ cur=avId(cur); return `<div class="avgrid" id="${id}"
 function avBind(id,get,set){ const g=document.getElementById(id); g.addEventListener('click',e=>{ const b=e.target.closest('[data-av]'); if(!b) return; const v=get()===b.dataset.av?'':b.dataset.av; set(v); g.querySelectorAll('.avb').forEach(x=>x.setAttribute('aria-pressed',x.dataset.av===v)); }); }
 
 const RESET_EPOCH=1000;
-const VERSION='5.2', VERSION_DATE='15 nov. 2026';
+const VERSION='5.3', VERSION_DATE='15 nov. 2026';
 /* =========================================================
    Données : 6000 mots classés en 6 niveaux du CECRL (A1 à C2), 1000 par niveau
    et des phrases courtes anglais / français
@@ -985,6 +989,9 @@ const EN = {
 "Difficulté {d}/10":"Difficulty {d}/10",
 "Le mot intrus : il ne correspondait à aucun mot":"The odd one out: it matched no word",
 "Ton avatar":"Your avatar",
+"Tu as déjà joué sur un autre appareil ?":"Already played on another device?",
+"Les joueurs sont enregistrés séparément dans chaque navigateur. Connecte la sauvegarde GitHub (une seule fois sur cet appareil) pour retrouver tes joueurs et ta progression.":"Players are stored separately in each browser. Connect the GitHub backup (just once on this device) to get your players and progress back.",
+"Retrouver mes joueurs":"Find my players",
 "Nouvelle phrase":"New sentence",
 "Revoir ce mot plus souvent":"Show this word more often",
 "Choisis ton avatar":"Pick your avatar",
@@ -1364,6 +1371,9 @@ function renderPlayers(){
       <p class="lead">${list.length
         ? t('Choisis ton nom pour retrouver ton score, tes mots à revoir et tes temps. Nouveau ? Inscris-toi à côté.')
         : t('Inscris-toi pour garder ton score, tes mots à revoir et tes temps. Chaque personne qui joue sur cet ordinateur peut avoir son propre profil.')}</p>
+      ${!ghReady() ? `<div class="ghhint"><b>☁ ${t('Tu as déjà joué sur un autre appareil ?')}</b>
+        <p>${t('Les joueurs sont enregistrés séparément dans chaque navigateur. Connecte la sauvegarde GitHub (une seule fois sur cet appareil) pour retrouver tes joueurs et ta progression.')}</p>
+        <button type="button" class="cta small" id="ghHintBtn">☁ ${t('Retrouver mes joueurs')}</button></div>` : ''}
       ${list.length ? `<h3 class="section-title">${t('Joueurs sur cet ordinateur')}</h3>
       <ol class="ranking">${list.map((o,i)=>{ const d=o.p.data; return `<li><button class="prow${o.p.id===DB.current?' cur':''}" data-pid="${o.p.id}">
         <span class="pos">${i+1}</span>
@@ -1407,6 +1417,7 @@ function renderPlayers(){
     setPlayer(id); sfx.chime();
     show('home'); toast('🎫',t('Bienvenue'), name); scheduleSync(1500);
   });
+  const gb=$('#ghHintBtn'); if(gb) gb.addEventListener('click', openGithub);
   sec.querySelectorAll('[data-pid]').forEach(b=>b.addEventListener('click', ()=>choosePlayer(b.dataset.pid)));
   if(!list.length && !$('#suName').value) setTimeout(()=>{ const n=$('#suName'); if(n && !n.hidden) n.focus(); }, 50);
   if(ghReady()){ ghLoadRanking().then(fillRemote).catch(()=>{}); }
