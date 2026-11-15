@@ -701,7 +701,7 @@ function avPicker(id,cur){ cur=avId(cur); return `<div class="avgrid" id="${id}"
 function avBind(id,get,set){ const g=document.getElementById(id); g.addEventListener('click',e=>{ const b=e.target.closest('[data-av]'); if(!b) return; const v=get()===b.dataset.av?'':b.dataset.av; set(v); g.querySelectorAll('.avb').forEach(x=>x.setAttribute('aria-pressed',x.dataset.av===v)); }); }
 
 const RESET_EPOCH=1000;
-const VERSION='4.6', VERSION_DATE='15 nov. 2026';
+const VERSION='4.7', VERSION_DATE='15 nov. 2026';
 /* =========================================================
    Données : 6000 mots classés en 6 niveaux du CECRL (A1 à C2), 1000 par niveau
    et des phrases courtes anglais / français
@@ -1007,7 +1007,9 @@ LEVELS.forEach((L,i)=>Object.defineProperties(L,{
   name:{get:()=>t(LV_TXT[i][0])}, label:{get:()=>t(LV_TXT[i][1])}, desc:{get:()=>t(LV_TXT[i][2])}}));
 const SESSIONS = [1,3,5,10];
 const SIZES = [5,10,15,20];
-const SENT_EVERY = 75;       // une phrase à traduire tous les 75 mots
+const SENT_EVERY = 75;       // ancien rythme (conversion des anciennes sauvegardes)
+// une phrase à traduire tous les 15 mots reliés (20 si les listes font 20 mots)
+function sentEvery(){ const n=(typeof S!=='undefined' && S && S.settings && S.settings.size)||15; return n>=20?20:15; }
 const LINE_COLORS = ['#0039A6','#00933C','#FF6319','#B933AD','#FCCC0A','#6CBE45','#00A1DE','#996633','#808183'];
 const DARK_TEXT = new Set(['#FCCC0A','#6CBE45','#00A1DE','#808183','#FF6319']);
 const PLAYER_COLORS = ['#0039A6','#EE352E','#00933C','#FF6319','#B933AD','#FCCC0A','#00A1DE','#996633'];
@@ -1049,7 +1051,7 @@ function bDesc(b){
    ========================================================= */
 const KEY = 'prochaine-station-anglais-v2', OLDKEY = 'prochaine-station-anglais-v1';
 function defaults(){
-  return {stats:{}, score:0, lists:0, bestList:0, bestCombo:0, perfect:0, answered:0, sentMark:0, epoch:RESET_EPOCH,
+  return {stats:{}, score:0, lists:0, bestList:0, bestCombo:0, perfect:0, answered:0, sentMark:0, sentAt:0, epoch:RESET_EPOCH,
     sent:{done:0, ok:0, err:0, perfect:0, skip:0}, sseen:{},
     day:{last:'', streak:0, goal:''}, goals:0, stk:{}, badges:{}, act:{}, times:{},
     settings:{level:0, goal:100, session:3, size:15, dir:'tn', sdir:'mix', mask:false, sound:true, voice:true, voiceName:'', rate:0.9, kid:true}};
@@ -1070,6 +1072,7 @@ function normalize(s){
   if(out.settings.dir==='en-fr') out.settings.dir='tn'; else if(out.settings.dir==='fr-en') out.settings.dir='nt';
   if(typeof s.answered!=='number'){ let n=0; for(const k in out.stats) n+=out.stats[k].n||0; out.answered=n; out.sentMark=Math.floor(n/SENT_EVERY); }
   if(typeof s.sentMark!=='number') out.sentMark=Math.floor(out.answered/SENT_EVERY);
+  if(typeof s.sentAt!=='number') out.sentAt=Math.min(out.answered, (out.sentMark||0)*SENT_EVERY);
   return out;
 }
 function newId(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -1506,9 +1509,9 @@ function renderHome(){
   rb.textContent = weak ? t('Revanche : {n} de tes mots ratés', {n:Math.min(sizeOf(),weak)}) : t('Revanche');
   $('#revNote').textContent = weak ? t('{n} à revoir en tout. La revanche les regroupe dans une seule liste.', {n:plural(weak,'mot')}) : t('La revanche se débloque dès que tu rates un mot.');
   $('#btnSentence').textContent = t('Phrase à traduire');
-  const left = Math.max(0, SENT_EVERY*(S.sentMark+1)-S.answered);
+  const left = Math.max(0, sentEvery()-(S.answered-S.sentAt));
   $('#sentNote').textContent = left>0
-    ? t('Tous les {every} mots reliés, une phrase à traduire t’attend : encore {n}. Le bouton « Phrase à traduire » te permet de t’entraîner sans attendre.', {every:SENT_EVERY, n:plural(left,'mot')})
+    ? t('Tous les {every} mots reliés, une phrase à traduire t’attend : encore {n}. Le bouton « Phrase à traduire » te permet de t’entraîner sans attendre.', {every:sentEvery(), n:plural(left,'mot')})
     : t('Une phrase à traduire t’attend à la fin de ta prochaine liste.');
   updateCloudBtn();
 }
@@ -1850,7 +1853,7 @@ function finishList(timeout){
   const rankBefore = rankOf(S.score);
   S.score += G.listScore; S.lists++;
   S.answered += G.matched.size;
-  G.sentenceDue = SENTS.length>0 && Math.floor(S.answered/SENT_EVERY) > S.sentMark;
+  G.sentenceDue = SENTS.length>0 && (S.answered-S.sentAt) >= sentEvery();
   S.bestList = Math.max(S.bestList, G.listScore);
   S.bestCombo = Math.max(S.bestCombo, G.maxCombo);
   if(perfect) S.perfect++;
@@ -1939,7 +1942,7 @@ function showListModal(r, o){
     </dl>
     ${verdict?`<p class="verdict ${vcls}">${verdict}</p>`:''}
     ${bonus?`<p class="bonus">${bonus}</p>`:''}
-    ${due?`<p class="verdict good">🎫 ${t('Tu as relié {n} mots : une phrase à traduire t’attend avant la suite.',{n:SENT_EVERY*Math.floor(S.answered/SENT_EVERY)})}</p>`:''}
+    ${due?`<p class="verdict good">🎫 ${t('Tu as relié {n} mots : une phrase à traduire t’attend avant la suite.',{n:sentEvery()})}</p>`:''}
     ${r.newBadges.length?`<h3>${r.newBadges.length>1?t('Badges débloqués'):t('Badge débloqué')}</h3><div class="newbadges">${r.newBadges.map(b=>`<span class="chip">${b.ic} ${esc(bName(b))}</span>`).join('')}</div>`:''}
     ${review.length?`<h3>${t('À revoir (ces mots reviendront plus souvent)')}</h3><ul class="review">${review.map(w=>`<li><button class="say" data-action="say" data-word="${esc(textOf(w,tar()))}">🔊 ${esc(textOf(w,tar()))}</button><span>${esc(textOf(w,LANG))}</span></li>`).join('')}</ul>`:''}
     <div class="m-actions">${next}${view?'':`<button class="ghost" data-action="peek">${t('Voir le plan')}</button><button class="ghost" data-action="home">${t('Accueil')}</button>`}</div>`);
@@ -1965,7 +1968,7 @@ function goHome(){ closeModal(); stopTimer(); G=null; if(TTS) speechSynthesis.ca
 function afterList(kind){
   const go = ()=>{ if(kind==='next') nextList(); else if(G && G.total>1) showSummary(); else goHome(); };
   if(G && G.sentenceDue && SENTS.length){
-    G.sentenceDue=false; S.sentMark=Math.floor(S.answered/SENT_EVERY); save();
+    G.sentenceDue=false; S.sentAt=S.answered; save();
     startSentence({after:go});
   } else go();
 }
@@ -2667,7 +2670,7 @@ function mergeInto(L, Rraw){
   if(re<le) return;
   for(const k in R.stats){ const a=L.stats[k], b=R.stats[k];
     if(!a || (b.n||0)>(a.n||0) || ((b.n||0)===(a.n||0) && (b.t||0)>(a.t||0))) L.stats[k]=b; }
-  for(const f of ['score','lists','bestList','bestCombo','perfect','answered','sentMark','goals']) L[f]=Math.max(L[f]||0, R[f]||0);
+  for(const f of ['score','lists','bestList','bestCombo','perfect','answered','sentMark','sentAt','goals']) L[f]=Math.max(L[f]||0, R[f]||0);
   for(const f in R.sent) L.sent[f]=Math.max(L.sent[f]||0, R.sent[f]||0);
   for(const k in R.sseen){ const a=L.sseen[k], b=R.sseen[k]; if(!a || b.n>a.n) L.sseen[k]=b; }
   if((R.day.last||'')>(L.day.last||'') || (R.day.last===L.day.last && R.day.streak>L.day.streak)) L.day=Object.assign({}, R.day);
