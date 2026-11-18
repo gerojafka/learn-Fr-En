@@ -543,6 +543,27 @@ body:has(#home:not([hidden])),body:has(#players:not([hidden])){
 .ghhint p{margin:6px 0 12px;color:#35404d;font-size:15px;line-height:1.4}
 .ghhint .cta.small{padding:10px 16px;font-size:16px}
 
+/* phrase à traduire : mots placés, sélection, déplacement, sens de la traduction */
+.slots .chipw:not(.ok):not(.no):not(.final){background:#dcebff;border-color:#2f6fc0;color:#0c2f66}
+.slots .chipw{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.chipw.sel{box-shadow:0 0 0 4px #ffb400;transform:translateY(-2px)}
+.chipw.drag{opacity:.3}
+.chipw.dragghost{position:fixed;z-index:99999;pointer-events:none;transform:translate(-50%,-60%) scale(1.08);box-shadow:0 8px 18px rgba(0,0,0,.35);background:#dcebff;border-color:#2f6fc0;color:#0c2f66}
+.sent-tip{margin:8px 2px 0;font-size:13px;opacity:.7;line-height:1.3}
+.dirsw{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.dirsw span{font-size:14px;font-weight:700;opacity:.8}
+.dirsw .seg{border:3px solid var(--ink);background:#fff;border-radius:999px;padding:5px 16px;font-size:16px;font-weight:700;min-height:38px;cursor:pointer}
+.dirsw .seg.on{background:var(--blue);border-color:var(--blue);color:#fff;cursor:default}
+.slots.dropping{box-shadow:inset 0 0 0 3px #2f6fc0}
+#sBank .chipw:not(.used){cursor:grab;user-select:none;-webkit-user-select:none}
+
+.wklist{list-style:none;margin:10px 0 0;padding:0;max-height:46vh;overflow:auto;border:2px solid var(--ink);border-radius:14px;background:#fff}
+.wk{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid #e3e3dc}
+.wk:last-child{border-bottom:0}
+.wk b{font-size:17px}.wkfr{color:var(--muted);margin-left:6px}
+.wk .ghost{padding:5px 12px;font-size:14px;white-space:nowrap}
+#weakRow.off{opacity:.6}
+
 </style>
 </head>
 <body>
@@ -632,6 +653,8 @@ body:has(#home:not([hidden])),body:has(#players:not([hidden])){
       <div class="opt"><h4 id="sizeLabel"></h4><div class="seg" id="sizeSeg" role="radiogroup"></div></div>
     </div>
     <label class="check" id="maskRow"><input type="checkbox" id="maskChk"><span><span id="maskTxt"></span><small id="maskNote"></small></span></label>
+    <label class="check" id="weakRow"><input type="checkbox" id="weakChk"><span><span id="weakTxt"></span><small id="weakNote"></small></span></label>
+    <button class="ghost" id="btnWeakMgr" type="button" style="margin-top:8px"></button>
 
     <div class="go">
       <button class="cta" id="btnGo"><span class="bullet" id="goBullet"><span>1</span></span><span id="goTxt"></span></button>
@@ -725,7 +748,7 @@ function avPicker(id,cur){ cur=avId(cur); return `<div class="avgrid" id="${id}"
 function avBind(id,get,set){ const g=document.getElementById(id); g.addEventListener('click',e=>{ const b=e.target.closest('[data-av]'); if(!b) return; const v=get()===b.dataset.av?'':b.dataset.av; set(v); g.querySelectorAll('.avb').forEach(x=>x.setAttribute('aria-pressed',x.dataset.av===v)); }); }
 
 const RESET_EPOCH=1000;
-const VERSION='5.4', VERSION_DATE='15 nov. 2026';
+const VERSION='5.5', VERSION_DATE='15 nov. 2026';
 /* =========================================================
    Données : 6000 mots classés en 6 niveaux du CECRL (A1 à C2), 1000 par niveau
    et des phrases courtes anglais / français
@@ -833,7 +856,7 @@ const EN = {
 "Profil supprimé sur GitHub":"Profile deleted on GitHub","Connexion supprimée de cet ordinateur":"Connection removed from this computer",
 "Réglages de {name}":"{name}’s settings","Mots par liste":"Words per list","Nombre de mots par liste":"Number of words per list",
 "Le chrono et les bonus s’adaptent au nombre de mots. Tes temps moyens sont calculés séparément pour 5, 10 et 15 mots.":"The timer and bonuses adapt to the number of words. Your average times are calculated separately for 5, 10 and 15 words.",
-"Phrases à traduire":"Sentences to translate","Sens des phrases":"Sentence direction","Alternées":"Mixed",
+"Phrases à traduire":"Sentences to translate","Sens des phrases":"Sentence direction","Alternées":"Mixed","Seulement mes mots à revoir":"Only my words to review","Les listes ne piochent que dans tes {n} mots non reconnus.":"Lists only draw from your {n} unrecognised words.","Il faut au moins 2 mots non reconnus : ils arrivent quand tu te trompes.":"You need at least 2 unrecognised words: they appear when you make a mistake.","Ma liste de mots à revoir":"My list of words to review","Mots à revoir : {n}":"Words to review: {n}","Je le connais":"I know it","Tout retirer":"Remove all","Ta liste est vide : tous tes mots sont reconnus.":"Your list is empty: all your words are recognised.","Un mot reste dans la liste tant que tu ne le retires pas. Retire-le quand tu estimes le connaître ; il reviendra si tu te trompes à nouveau.":"A word stays in the list until you remove it. Remove it when you feel you know it; it will come back if you get it wrong again.","Retirer tous les mots de la liste ?":"Remove all the words from the list?","Oui, tout retirer":"Yes, remove all","Aléatoire":"Random","Appliqué aux listes où les mots {tg} sont à gauche.":"Applied to the lists where the {tg} words are on the left.",
 "Le premier mode montre une phrase en {a} puis en {b}, au hasard. Les deux autres fixent le sens : la phrase à gauche de la flèche, la traduction à construire à droite.":"The first mode shows a sentence in {a} or in {b}, at random. The other two fix the direction: the sentence on the left of the arrow, the translation to build on the right.",
 "Prononcer le mot {tg} quand je clique dessus":"Read the {tg} word aloud when I click it","Voix":"Voice","Vitesse":"Speed","Écouter un exemple":"Hear an example",
 "Les voix dépendent du navigateur. Sur Windows, Microsoft Edge propose des voix américaines très naturelles (Aria, Jenny, Guy).":"Voices depend on the browser. On Windows, Microsoft Edge offers very natural American voices (Aria, Jenny, Guy).",
@@ -868,10 +891,10 @@ const EN = {
 "Activité : {u} par {p}":"Activity: {u} per {p}","listes":"lists","Jour":"Day","Temps de jeu":"Play time",
 "Station spéciale : touche les mots dans le bon ordre. Attention aux intrus !":"Special station: tap the words in the right order. Watch out for the intruders!",
 "Entraînement : touche les mots dans le bon ordre.":"Practice: tap the words in the right order.",
-"Écouter la phrase":"Hear the sentence","Construis la traduction en {lang}. Certains mots sont des intrus.":"Build the translation in {lang}. Some words are intruders.",
+"Écouter la phrase":"Hear the sentence","Touche un mot placé pour l’échanger, le remplacer ou le retirer ; glisse-le pour le déplacer.":"Tap a placed word to swap, replace or remove it; drag it to move it.","Traduire vers :":"Translate into:","Construis la traduction en {lang}. Certains mots sont des intrus.":"Build the translation in {lang}. Some words are intruders.",
 "Ta traduction":"Your translation","Mots disponibles":"Available words","Vérifier":"Check","Indice":"Hint","Voir la réponse":"See the answer",
-"{n} mots mal placés. Touche un mot pour le retirer.":"{n} words in the wrong place. Tap a word to remove it.",
-"{n} mot mal placé. Touche un mot pour le retirer.":"{n} word in the wrong place. Tap a word to remove it.",
+"{n} mots mal placés. Touche un mot pour le changer.":"{n} words in the wrong place. Tap a word to change it.",
+"{n} mot mal placé. Touche un mot pour le changer.":"{n} word in the wrong place. Tap a word to change it.",
 "Bien joué !":"Well done!","Voici la réponse":"Here is the answer","+{n} points":"+{n} points","Cette phrase reviendra plus tard.":"This sentence will come back later.",
 "Continuer":"Continue","Écouter":"Listen",
 "Pas de connexion à GitHub (ou accès bloqué par le navigateur).":"Cannot reach GitHub (or access blocked by the browser).",
@@ -1192,6 +1215,9 @@ function fmtDate(d, o){ return d.toLocaleDateString(locale(), o); }
 /* =========================================================
    Choix des mots d'une liste (répétition espacée)
    ========================================================= */
+const DAYMS=864e5;
+function dueAt(en){ const s=peek(en); if(!s) return 0; const st=s.st||0; return (s.t||0)+(st<3 ? 0 : Math.min(60, .5*Math.pow(2,st-3))*DAYMS); }
+const RECENT=[];   // mots des 3 dernières listes
 function taker(N){
   const chosen=[], usedEn=new Set(), usedFr=new Set();
   const take = w=>{
@@ -1202,9 +1228,22 @@ function taker(N){
   };
   return {chosen, take};
 }
+function makeWeakList(){
+  const N=sizeOf(), weak=reviewWords(); if(weak.length<2) return null;
+  const recent=new Set(RECENT.flat()), {chosen, take}=taker(N);
+  const wf=w=>(peek(w.en).w||0)+1;
+  weightedPick(weak.filter(w=>!recent.has(w.en)), wf, weak.length).forEach(take);
+  weightedPick(weak.filter(w=>recent.has(w.en)), wf, weak.length).forEach(take);
+  if(chosen.length<2) return null;
+  RECENT.push(chosen.map(w=>w.en)); if(RECENT.length>3) RECENT.shift();
+  return shuffle(chosen);
+}
 function makeList(level){
+  if(S.settings.weakOnly){ const wl=makeWeakList(); if(wl) return wl; }
   const L=LEVELS[level], pool=levelPool(level), N=sizeOf();
-  const {chosen, take} = taker(N);
+  const {chosen, take:take0} = taker(N);
+  const recent=new Set(RECENT.flat()); let strict=true;
+  const take=w=>{ if(strict && w && recent.has(w.en)) return; take0(w); };
   // 0) les mots cochés « à revoir souvent » reviennent même quand on les réussit
   let fc=0; for(const w of shuffle(pool.filter(w=>isFav(w.en)))){ if(fc>=Math.max(1,Math.round(N*.3))) break; if(Math.random()<.6){ take(w); fc++; } }
   // 1) les mots ratés reviennent, tirés au sort selon leur nombre d'erreurs
@@ -1222,11 +1261,14 @@ function makeList(level){
   const cap = N-Math.max(1,Math.round(N*.15));
   for(const w of unseen){ if(chosen.length>=cap) break; take(w); }
   // 3) quelques mots déjà connus, les plus anciens en priorité
-  const known = pool.filter(w=>{ const s=peek(w.en); return isSeen(s) && s.w===0; }).sort((a,b)=>peek(a.en).t-peek(b.en).t);
-  shuffle(known.slice(0,40)).forEach(take);
+  const now=Date.now(), known = pool.filter(w=>{ const s=peek(w.en); return isSeen(s) && s.w===0; }).sort((a,b)=>dueAt(a.en)-dueAt(b.en));
+  shuffle(known.filter(w=>dueAt(w.en)<=now).slice(0,40)).forEach(take);   // seulement les mots dont l'échéance est passée
   unseen.forEach(take);
   shuffle(review.slice()).forEach(take);
+  known.forEach(take);   // à défaut, ceux dont l'échéance est la plus proche
   shuffle(pool.slice()).forEach(take);
+  strict=false; shuffle(review.slice()).forEach(take); known.forEach(take); shuffle(pool.slice()).forEach(take);
+  RECENT.push(chosen.map(w=>w.en)); if(RECENT.length>3) RECENT.shift();
   return shuffle(chosen);
 }
 function weakWords(){
@@ -1523,7 +1565,8 @@ function renderHome(){
   $('#dirSeg').setAttribute('aria-label', t('Sens du jeu'));
   $('#dirSeg').innerHTML =
     `<button role="radio" data-dir="tn" aria-checked="${S.settings.dir==='tn'}">${tCap()} → ${nCap()}</button>`+
-    `<button role="radio" data-dir="nt" aria-checked="${S.settings.dir==='nt'}">${nCap()} → ${tCap()}</button>`;
+    `<button role="radio" data-dir="nt" aria-checked="${S.settings.dir==='nt'}">${nCap()} → ${tCap()}</button>`+
+    `<button role="radio" data-dir="mix" aria-checked="${S.settings.dir==='mix'}">🔀 ${t('Aléatoire')}</button>`;
   $('#sessLabel').textContent = t('Nombre de listes de {n} mots', {n:sizeOf()});
   $('#session').setAttribute('aria-label', t('Nombre de listes'));
   $('#session').innerHTML = SESSIONS.map(n=>
@@ -1531,12 +1574,18 @@ function renderHome(){
   $('#sizeLabel').textContent = t('Nombre de mots dans la liste');
   $('#sizeSeg').setAttribute('aria-label', t('Nombre de mots dans la liste'));
   $('#sizeSeg').innerHTML = SIZES.map(n=>`<button role="radio" aria-checked="${n===sizeOf()}" data-size="${n}">${n}</button>`).join('');
-  const canMask = S.settings.dir==='tn' && TTS;
+  const wn = reviewWords().length, wOn = wn>=2;
+  $('#weakChk').checked = wOn && !!S.settings.weakOnly; $('#weakChk').disabled = !wOn; $('#weakRow').classList.toggle('off', !wOn);
+  $('#weakTxt').textContent = t('Seulement mes mots à revoir');
+  $('#weakNote').textContent = wOn ? t('Les listes ne piochent que dans tes {n} mots non reconnus.', {n:wn}) : t('Il faut au moins 2 mots non reconnus : ils arrivent quand tu te trompes.');
+  $('#btnWeakMgr').textContent = '📋 '+t('Ma liste de mots à revoir')+' ('+wn+')';
+  const canMask = S.settings.dir!=='nt' && TTS;
   const mr=$('#maskRow'), mc=$('#maskChk');
   mc.checked = canMask && S.settings.mask; mc.disabled = !canMask; mr.classList.toggle('off', !canMask);
   $('#maskTxt').textContent = t('Masquer les mots {tg}', {tg:tAdj()});
   $('#maskNote').textContent = !TTS ? t('Indisponible : ton navigateur ne sait pas prononcer les mots.')
     : S.settings.dir==='tn' ? t('Tu les entends seulement : à toi de reconnaître le mot à l’oreille.')
+    : S.settings.dir==='mix' ? t('Appliqué aux listes où les mots {tg} sont à gauche.', {tg:tAdj()})
     : t('Possible seulement quand les mots {tg} sont à gauche.', {tg:tAdj()});
   $('#goTxt').textContent = t('Partir');
   $('#goBullet').outerHTML = bulletHTML(L,'goBullet');
@@ -1560,6 +1609,8 @@ $('#dirSeg').addEventListener('click', e=>{ const b=e.target.closest('[data-dir]
 $('#maskChk').addEventListener('change', e=>{ S.settings.mask=e.target.checked; save(); sfx.select(); if(e.target.checked) speak(tar()==='en' ? 'Listen carefully!' : 'Écoute bien !', true); });
 $('#btnGo').addEventListener('click', ()=>startSession('normal'));
 $('#btnRevenge').addEventListener('click', ()=>startSession('revenge'));
+$('#weakChk').addEventListener('change', e=>{ S.settings.weakOnly=e.target.checked; save(); sfx.select(); renderHome(); });
+$('#btnWeakMgr').addEventListener('click', ()=>openWeakList());
 $('#btnSentence').addEventListener('click', ()=>startSentence({practice:true, after:()=>{ closeModal(); show('home'); }}));
 $('#btnStats').addEventListener('click', ()=>show('stats'));
 $('#btnBack').addEventListener('click', ()=>show('home'));
@@ -1596,10 +1647,10 @@ function nextList(){
   const L = LEVELS[G.level]; setLevelColor(L);
   G.index++;
   const words = G.mode==='revenge' ? makeRevengeList() : makeList(G.level);
-  const dir = S.settings.dir, lL = dir==='tn' ? tar() : LANG, lR = dir==='tn' ? LANG : tar();
+  const dir = S.settings.dir==='mix' ? (Math.random()<.5?'tn':'nt') : S.settings.dir, lL = dir==='tn' ? tar() : LANG, lR = dir==='tn' ? LANG : tar();
   // un mot intrus à droite : il ne correspond à aucun mot de gauche
   const used=new Set(words.map(w=>textOf(w,lR).toLowerCase()));
-  const src=(G.mode==='revenge' ? WORDS : levelPool(G.level)).filter(w=>!words.includes(w) && !used.has(textOf(w,lR).toLowerCase()));
+  const src=(G.mode==='revenge' || S.settings.weakOnly ? WORDS : levelPool(G.level)).filter(w=>!words.includes(w) && !used.has(textOf(w,lR).toLowerCase()));
   const intrus=src.length ? src[Math.floor(Math.random()*src.length)] : null;
   const right = words.concat(intrus?[intrus]:[]).sort((a,b)=>textOf(a,lR).localeCompare(textOf(b,lR), lR, {sensitivity:'base'}));
   const N = words.length, tb = S.times[N];
@@ -1728,7 +1779,7 @@ function attempt(lw, rw){
   } else {
     // l'erreur est comptée pour le mot de gauche : celui qu'il fallait traduire
     G.errors++; G.combo=0; G.streak=0;
-    const s=stat(lw.en); s.err++; s.st=0; s.w=Math.min(12,s.w+3); s.t=Date.now();
+    const s=stat(lw.en); s.err++; s.rv=1; s.st=0; s.w=Math.min(12,s.w+3); s.t=Date.now();
     G.wrongWords.add(lw.en);
     const pen=Math.round(2*L.mult); G.listScore=Math.max(0,G.listScore-pen);
     if(L.penalty){ G.penalty+=L.penalty; floatText(rEl,'−'+L.penalty+' s','bad'); }
@@ -1873,7 +1924,7 @@ function finishList(timeout){
   const unmatched = G.left.filter(w=>!G.matched.has(w.en));
   const now=Date.now();
   for(const w of unmatched){
-    const s=stat(w.en); s.n++; s.err++; s.st=0; s.w=Math.min(12,s.w+2); s.t=now; G.wrongWords.add(w.en);
+    const s=stat(w.en); s.n++; s.err++; s.rv=1; s.st=0; s.w=Math.min(12,s.w+2); s.t=now; G.wrongWords.add(w.en);
     reveal(w); elL(w).classList.add('missed'); elR(w).classList.add('missed');
   }
   G.missed = unmatched; if(unmatched.length) drawMissedLines();
@@ -2488,6 +2539,7 @@ function wordPool(lang){
   }
   return POOL[lang];
 }
+function langName(l){ const v=adjOf(l); return v.charAt(0).toUpperCase()+v.slice(1); }
 function adjOf(l){ return LANG==='fr' ? (l==='en'?'anglais':'français') : (l==='en'?'English':'French'); }
 
 let X = null;     // exercice de phrase en cours
@@ -2506,8 +2558,15 @@ function startSentence(ctx){
   if(!SENTS.length){ if(ctx.after) ctx.after(); return; }
   const i=pickSentenceIdx();
   let d=S.settings.sdir; if(d!=='tn' && d!=='nt') d=Math.random()<.5?'tn':'nt';
-  const srcLang = d==='tn' ? tar() : LANG, ansLang = d==='tn' ? LANG : tar();
-  const src=SENTS[i][srcLang], ans=SENTS[i][ansLang];
+  X={i, d, errors:0, hints:0, over:false, ctx};
+  buildDir(X, d==='tn' ? tar() : LANG);
+  renderSentence();
+  if(X.srcLang===tar()) speak(sentText(X.src,X.srcLang));
+}
+// prépare la phrase dans un sens (langue affichée → langue à construire) ; sert aussi à changer de sens en direct
+function buildDir(x, srcLang){
+  const ansLang = srcLang===tar() ? LANG : tar();
+  const src=SENTS[x.i][srcLang], ans=SENTS[x.i][ansLang];
   const k=Math.max(3, Math.min(5, Math.round(ans.tokens.length*0.6)));
   const have=new Set(ans.tokens.map(w=>w.toLowerCase()));
   const dis=[], seen=new Set();
@@ -2516,9 +2575,7 @@ function startSentence(ctx){
     seen.add(lw); dis.push(w); if(dis.length>=k) break;
   }
   const bank=shuffle(ans.tokens.concat(dis)).map((w,j)=>({id:j, w}));
-  X={i, d, srcLang, ansLang, src, ans, bank, placed:[], errors:0, hints:0, over:false, ctx, marks:null};
-  renderSentence();
-  if(srcLang===tar()) speak(sentText(src,srcLang));
+  Object.assign(x, {srcLang, ansLang, src, ans, bank, placed:Array(ans.tokens.length).fill(null), marks:null, sel:null});
 }
 function bankWord(id){ return X.bank.find(b=>b.id===id).w; }
 function renderSentence(){
@@ -2530,6 +2587,8 @@ function renderSentence(){
     <p class="sent-lab">${t('Construis la traduction en {lang}. Certains mots sont des intrus.',{lang:adjOf(x.ansLang)})}</p>
     <div class="slots" id="sSlots" aria-label="${t('Ta traduction')}"></div>
     <div class="bank" id="sBank" aria-label="${t('Mots disponibles')}"></div>
+    <p class="sent-tip">${t('Touche un mot placé pour l’échanger, le remplacer ou le retirer ; glisse-le pour le déplacer.')}</p>
+    <div class="dirsw" id="sDir"><span>${t('Traduire vers :')}</span>${['en','fr'].map(l=>`<button type="button" class="seg${l===x.ansLang?' on':''}" data-al="${l}" aria-pressed="${l===x.ansLang}">${esc(langName(l))}</button>`).join('')}</div>
     <p class="err" id="sMsg" role="alert"></p>
     <div class="m-actions">
       <button class="cta" id="sCheck" disabled>${t('Vérifier')}</button>
@@ -2540,14 +2599,89 @@ function renderSentence(){
   const slots=$('#sSlots'), bank=$('#sBank');
   bank.addEventListener('click', e=>{
     const b=e.target.closest('[data-b]'); if(!b || x.over) return;
-    const id=+b.dataset.b; if(x.placed.includes(id) || x.placed.length>=x.ans.tokens.length) return;
-    x.placed.push(id); x.marks=null; $('#sMsg').textContent='';
+    const id=+b.dataset.b; if(x.placed.includes(id)) return;
+    if(x.sel!=null && x.placed[x.sel]!=null) x.placed[x.sel]=id;          // remplace le mot choisi dans la case
+    else { const e0=x.placed.indexOf(null); if(e0<0) return; x.placed[e0]=id; }   // sinon : première case vide
+    x.sel=null; x.marks=null; $('#sMsg').textContent='';
     if(x.ansLang===tar()) speak(bankWord(id));
     sfx.select(); paintSentence();
   });
+  let drag=null, noClick=false;
+  const moveWord=(from,to)=>{ const t0=x.placed[to]; x.placed[to]=x.placed[from]; x.placed[from]=t0; x.sel=null; x.marks=null; $('#sMsg').textContent=''; sfx.select(); };
   slots.addEventListener('click', e=>{
-    const b=e.target.closest('[data-pl]'); if(!b || x.over) return;
-    x.placed.splice(+b.dataset.pl,1); x.marks=null; $('#sMsg').textContent=''; sfx.select(); paintSentence();
+    if(noClick) return;
+    const es=e.target.closest('[data-slot]');
+    if(es && !x.over){                                                   // case vide : on y envoie le mot choisi
+      if(x.sel!=null){ x.placed[+es.dataset.slot]=x.placed[x.sel]; x.placed[x.sel]=null; x.sel=null; x.marks=null; $('#sMsg').textContent=''; sfx.select(); paintSentence(); }
+      return;
+    }
+    const b=e.target.closest('[data-pl]');
+    if(!b || x.over){ if(x.sel!=null){ x.sel=null; paintSentence(); } return; }
+    const pos=+b.dataset.pl; x.marks=null; $('#sMsg').textContent=''; sfx.select();
+    if(x.sel==null) x.sel=pos;
+    else if(x.sel===pos){ x.placed[pos]=null; x.sel=null; }              // second appui : on retire le mot, la case reste vide
+    else { const t0=x.placed[x.sel]; x.placed[x.sel]=x.placed[pos]; x.placed[pos]=t0; x.sel=null; }   // échange de deux cases
+    paintSentence();
+  });
+  // glisser-déposer libre : un mot placé se déplace d'une case à l'autre, ou se lâche hors des cases pour revenir dans la liste ;
+  // à la souris, un mot de la liste peut aussi être glissé directement dans les cases
+  // cible exacte sous le pointeur (aucun aimant) : un mot placé, une case vide, ou rien
+  const hit=(cx,cy)=>{
+    const el=document.elementFromPoint(cx,cy); if(!el) return {};
+    const c=el.closest('#sSlots [data-pl]');
+    if(c){ const r=c.getBoundingClientRect(); return {i:+c.dataset.pl, after:cx>r.left+r.width/2}; }
+    const es=el.closest('#sSlots [data-slot]'); if(es) return {empty:true, slot:+es.dataset.slot};
+    return {inside: !!el.closest('#sSlots')};
+  };
+  const onDown=(e, attr)=>{
+    const b=e.target.closest('['+attr+']'); if(!b || x.over || e.button || b.disabled) return;
+    if(attr==='data-b' && e.pointerType!=='mouse') return;                 // au doigt, la liste reste défilable
+    drag={attr, key:+b.dataset[attr==='data-pl'?'pl':'b'], sx:e.clientX, sy:e.clientY, moving:false, el:b, ghost:null, id:e.pointerId};
+    window.addEventListener('pointermove', onMove, {passive:false}); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+  };
+  const onMove=e=>{
+    if(!drag || e.pointerId!==drag.id) return;
+    if(!drag.moving){
+      if(Math.hypot(e.clientX-drag.sx, e.clientY-drag.sy)<4) return;
+      drag.moving=true; sfx.select();
+      const g=drag.el.cloneNode(true); g.className='chipw dragghost'; g.removeAttribute('disabled'); document.body.appendChild(g); drag.ghost=g;
+      if(drag.attr==='data-pl') drag.el.classList.add('drag');
+    }
+    drag.ghost.style.left=e.clientX+'px'; drag.ghost.style.top=e.clientY+'px';
+    const h=hit(e.clientX,e.clientY); slots.classList.toggle('dropping', h.i!=null || !!h.empty);
+    e.preventDefault();
+  };
+  const onUp=e=>{
+    if(!drag || e.pointerId!==drag.id) return;
+    window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp);
+    const d=drag; drag=null; slots.classList.remove('dropping');
+    if(!d.moving) return;
+    d.ghost.remove(); noClick=true; setTimeout(()=>{ noClick=false; }, 0);
+    if(e.type!=='pointercancel'){
+      const h=hit(e.clientX, e.clientY), N=x.ans.tokens.length;
+      if(d.attr==='data-pl'){
+        if(h.i!=null){ if(h.i!==d.key) moveWord(d.key, h.i); }                       // lâché sur un autre mot : les deux s'échangent
+        else if(h.empty) moveWord(d.key, h.slot);                                     // lâché sur une case vide : il va dans cette case
+        else { x.placed[d.key]=null; x.sel=null; x.marks=null; $('#sMsg').textContent=''; }   // ailleurs : retour dans la liste, case vide
+      } else if((h.i!=null || h.empty || h.inside) && !x.placed.includes(d.key)){
+        const to=h.i!=null ? h.i : h.empty ? h.slot : x.placed.indexOf(null);
+        if(to>=0){
+          x.placed[to]=d.key; x.sel=null; x.marks=null; $('#sMsg').textContent='';
+          if(x.ansLang===tar()) speak(bankWord(d.key));
+        }
+      }
+    }
+    paintSentence();
+  };
+  slots.addEventListener('pointerdown', e=>onDown(e,'data-pl'));
+  bank.addEventListener('pointerdown', e=>onDown(e,'data-b'));
+  bank.addEventListener('click', e=>{ if(noClick){ e.stopImmediatePropagation(); } }, true);
+  $('#sDir').addEventListener('click', e=>{
+    const b=e.target.closest('[data-al]'); if(!b || x.over || b.dataset.al===x.ansLang) return;
+    sfx.select(); if(TTS) speechSynthesis.cancel();
+    buildDir(x, x.ansLang);                                              // les deux langues s'échangent, la phrase reste la même
+    renderSentence();
+    if(x.srcLang===tar()) speak(sentText(x.src,x.srcLang));
   });
   $('#sCheck').onclick=sentCheck;
   $('#sHint').onclick=sentHint;
@@ -2558,29 +2692,31 @@ function renderSentence(){
 }
 function paintSentence(){
   const x=X, N=x.ans.tokens.length;
-  let s=x.placed.map((id,pos)=>`<button class="chipw${x.marks?(x.marks[pos]?' ok':' no'):''}" data-pl="${pos}" lang="${x.ansLang}">${esc(bankWord(id))}</button>`).join('');
-  for(let i=x.placed.length;i<N;i++) s+='<span class="slot"></span>';
+  let s=x.placed.map((id,pos)=> id==null ? `<span class="slot" data-slot="${pos}"></span>` :
+    `<button class="chipw${x.marks?(x.marks[pos]?' ok':' no'):''}${x.sel===pos?' sel':''}" data-pl="${pos}" lang="${x.ansLang}">${esc(bankWord(id))}</button>`).join('');
   $('#sSlots').innerHTML=s;
   $('#sBank').innerHTML=x.bank.map(b=>{ const used=x.placed.includes(b.id);
     return `<button class="chipw${used?' used':''}" data-b="${b.id}" lang="${x.ansLang}" ${used?'disabled aria-hidden="true"':''}>${esc(b.w)}</button>`; }).join('');
-  $('#sCheck').disabled = x.placed.length!==N;
+  if(x.sel!=null && x.placed[x.sel]==null) x.sel=null;
+  $('#sCheck').disabled = x.placed.includes(null);
   $('#sHint').disabled = x.over;
 }
 function sentCheck(){
-  const x=X; if(!x || x.over || x.placed.length!==x.ans.tokens.length) return;
+  const x=X; if(!x || x.over || x.placed.includes(null)) return;
   const marks=x.placed.map((id,i)=>bankWord(id)===x.ans.tokens[i]);
   if(marks.every(Boolean)){ sentEnd(true); return; }
   x.errors++; x.marks=marks; sfx.bad(); paintSentence();
   const k=marks.filter(m=>!m).length;
-  $('#sMsg').textContent = t(k>1 ? '{n} mots mal placés. Touche un mot pour le retirer.' : '{n} mot mal placé. Touche un mot pour le retirer.', {n:k});
+  $('#sMsg').textContent = t(k>1 ? '{n} mots mal placés. Touche un mot pour le changer.' : '{n} mot mal placé. Touche un mot pour le changer.', {n:k});
 }
 function sentHint(){
   const x=X; if(!x || x.over) return;
-  let pos=0; while(pos<x.placed.length && bankWord(x.placed[pos])===x.ans.tokens[pos]) pos++;
+  let pos=0; while(pos<x.placed.length && x.placed[pos]!=null && bankWord(x.placed[pos])===x.ans.tokens[pos]) pos++;
   if(pos>=x.ans.tokens.length) return;
-  x.placed.length=pos;
-  const b=x.bank.find(b=>b.w===x.ans.tokens[pos] && !x.placed.includes(b.id));
-  if(b) x.placed.push(b.id);
+  x.placed[pos]=null; x.sel=null;                                        // on corrige seulement cette case
+  let b=x.bank.find(b=>b.w===x.ans.tokens[pos] && !x.placed.includes(b.id));
+  if(!b){ b=x.bank.find(b=>b.w===x.ans.tokens[pos]); const o=x.placed.indexOf(b.id); if(o>=0) x.placed[o]=null; }   // le mot est posé ailleurs : on le reprend
+  x.placed[pos]=b.id;
   x.hints++; x.marks=null; $('#sMsg').textContent=''; sfx.select(); paintSentence();
 }
 function sentEnd(win){
@@ -2620,8 +2756,8 @@ function sentEnd(win){
 }
 document.addEventListener('keydown', e=>{
   if(!X || X.over || modal.hidden) return;
-  if(e.key==='Backspace' && X.placed.length && document.activeElement.tagName!=='INPUT'){ e.preventDefault(); X.placed.pop(); X.marks=null; $('#sMsg').textContent=''; paintSentence(); }
-  else if(e.key==='Enter' && X.placed.length===X.ans.tokens.length && document.activeElement.tagName!=='BUTTON'){ e.preventDefault(); sentCheck(); }
+  if(e.key==='Backspace' && X.placed.some(v=>v!=null) && document.activeElement.tagName!=='INPUT'){ e.preventDefault(); X.placed[X.placed.map(v=>v!=null).lastIndexOf(true)]=null; X.sel=null; X.marks=null; $('#sMsg').textContent=''; paintSentence(); }
+  else if(e.key==='Enter' && !X.placed.includes(null) && document.activeElement.tagName!=='BUTTON'){ e.preventDefault(); sentCheck(); }
 });
 
 
@@ -3215,6 +3351,36 @@ function openAvatarPicker(){
 }
 (function(){ const b=$('#btnAv'); b.title=t('Changer d’avatar'); b.setAttribute('aria-label',t('Changer d’avatar')); b.addEventListener('click',openAvatarPicker); })();
 window.__game.makeList=function(l){ return makeList(l); };
+window.__game.nextList=function(){ return nextList(); };
+window.__game.stat=function(en){ return stat(en); };
+
+// la liste « à revoir » : un mot y entre quand on se trompe et n'en sort que si on le retire soi-même
+function reviewWords(){
+  for(const k in S.stats){ const s=S.stats[k]; if(s.rv==null && s.w>0) s.rv=1; }   // reprise des mots déjà ratés avant cette liste
+  return WORDS.filter(w=>{ const s=peek(w.en); return s && s.rv; }).sort((a,b)=>(peek(b.en).w-peek(a.en).w) || (peek(b.en).err-peek(a.en).err));
+}
+/* ---------- ma liste de mots à revoir : on peut en sortir un mot quand on estime le connaître ---------- */
+function openWeakList(confirmAll){
+  const list=reviewWords();
+  const rows=list.map(w=>`<li class="wk"><span><b lang="en">${esc(w.en)}</b> <span class="wkfr">${esc(w.fr)}</span></span><button class="ghost small" data-know="${esc(w.en)}">✓ ${t('Je le connais')}</button></li>`).join('');
+  openModal(`
+    <h2 class="m-title">${t('Mots à revoir : {n}',{n:list.length})}</h2>
+    <p class="m-sub">${t('Un mot reste dans la liste tant que tu ne le retires pas. Retire-le quand tu estimes le connaître ; il reviendra si tu te trompes à nouveau.')}</p>
+    ${list.length ? `<ul class="wklist">${rows}</ul>` : `<p class="note">${t('Ta liste est vide : tous tes mots sont reconnus.')}</p>`}
+    <div class="m-actions">${confirmAll
+      ? `<span class="note">${t('Retirer tous les mots de la liste ?')}</span><button class="cta" data-wk="all">${t('Oui, tout retirer')}</button><button class="ghost" data-wk="cancel">${t('Annuler')}</button>`
+      : `<button class="cta" data-action="close" data-autofocus>${t('Fermer')}</button>${list.length?`<button class="ghost" data-wk="ask">${t('Tout retirer')}</button>`:''}`}</div>`);
+}
+function weakForget(en){ const s=stat(en); s.w=0; s.rv=0; s.st=Math.max(s.st||0,3); s.t=Date.now(); }
+sheet.addEventListener('click', e=>{
+  const b=e.target.closest('[data-know],[data-wk]'); if(!b) return;
+  const top=sheet.querySelector('.wklist'); const sc=top?top.scrollTop:0;
+  if(b.dataset.know){ weakForget(b.dataset.know); save(); sfx.select(); openWeakList(); const l=sheet.querySelector('.wklist'); if(l) l.scrollTop=sc; return; }
+  const a=b.dataset.wk;
+  if(a==='ask'){ openWeakList(true); return; }
+  if(a==='cancel'){ openWeakList(); return; }
+  if(a==='all'){ reviewWords().forEach(w=>weakForget(w.en)); save(); sfx.select(); openWeakList(); }
+});
 
 })();
 </script>
